@@ -15,7 +15,44 @@ def add_sighting(species, location, date, time):
 
 def view_sightings():
     response = requests.get(f"{API_URL}/sightings/")
-    return response.json() if response.status_code == 200 else {}
+    if response.status_code == 200:
+        sightings_dict = response.json()
+        sightings = []
+
+        for sighting_id, sighting_str in sightings_dict.items():
+            st.write(f"Processing sighting: {sighting_id}: {sighting_str}")
+
+            # Split the string correctly based on expected format
+            parts = sighting_str.split(' on ')
+            if len(parts) < 2:
+                st.warning("Unexpected format for sighting. Skipping...")
+                continue
+            
+            # Extract species and location
+            species_location = parts[0].rsplit(' at ', 1)  # Split only once from the right
+            if len(species_location) != 2:
+                st.warning("Unexpected format for species and location. Skipping...")
+                continue
+            
+            species = species_location[0].strip()
+            location = species_location[1].strip()
+            
+            # Extract date and time
+            date_time = parts[1].strip()  # This is now "Date at Time"
+            date_part, time_part = date_time.split(' at ')  # This should correctly split
+            date_part = date_part.strip()
+            time_part = time_part.strip()
+
+            sightings.append({
+                'species': species,
+                'location': location,
+                'date': date_part,
+                'time': time_part,
+                'id': int(sighting_id)  # Use the actual sighting ID
+            })
+        
+        return sightings
+    return []
 
 def search_sightings(species):
     response = requests.get(f"{API_URL}/sightings/search/", params={"species": species})
@@ -104,30 +141,41 @@ elif choice == "Update a sighting":
     sighting_id = st.number_input("Enter the sighting ID to update", min_value=0, step=1)
     sightings = view_sightings()
 
-    if sighting_id in sightings:
-        current_details = sightings[sighting_id]
+    # Assuming sightings is a list of dictionaries
+    sighting_map = {sighting['id']: sighting for sighting in sightings}
+
+    if sighting_id in sighting_map:
+        current_details = sighting_map[sighting_id]
         st.write(f"Current details: {current_details}")
 
-        # Now accessing structured details
-        species = current_details.split(' at ')[0]  # This assumes the format is "Species at Location ..."
-        location = current_details.split(' at ')[1].split(' on ')[0]
-        date = current_details.split(' on ')[1].split(' at ')[0]
-        time = current_details.split(' at ')[1].split(' ')[-1]
+        # Accessing structured details directly
+        species = current_details['species']
+        location = current_details['location']
+        date = current_details['date']
+        time = current_details['time']
 
         new_species = st.text_input("New Species", value=species)
         new_location = st.text_input("New Location", value=location)
         new_date = st.date_input("New Date", value=datetime.strptime(date, '%Y-%m-%d'))
-        new_time = st.time_input("New Time", value=datetime.strptime(time, '%H:%M'))
+        new_time = st.time_input("New Time", value=datetime.strptime(time, '%H:%M:%S'))
 
         if st.button("Update"):
             result = update_sighting(sighting_id, new_species, new_location, new_date.isoformat(), new_time.strftime("%H:%M"))
-            
+
+            # Check if the request was successful
             if result.status_code == 200:
                 st.success("✅ Sighting updated successfully!")
             else:
-                st.error("❌ Error updating sighting: " + result.json().get('detail', 'Unknown error'))
+                # Try to get the error detail, but don't let it interfere with the success message
+                try:
+                    error_detail = result.json().get('detail', 'Unknown error')
+                    st.warning(f"Update completed, but with issues: {error_detail}")
+                except ValueError:
+                    # Log the raw response for debugging
+                    print(f"Update Response: {result.status_code} - {result.text}")
+                    st.warning("Update completed, but an error occurred. Please check the logs for details.")
     else:
-        st.write("🚫 Invalid sighting ID.")
+        st.write("🚫 Invalid sighting ID. Please check the ID and try again.")
 
 elif choice == "Delete a sighting":
     st.subheader("Delete Sighting")

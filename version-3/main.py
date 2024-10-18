@@ -90,46 +90,35 @@ async def search_sightings(species: Optional[str] = None, location: Optional[str
 
 @app.put("/sightings/{sighting_id}", response_model=SightingResponse)
 async def update_sighting(sighting_id: int, updated_sighting: Sighting, db: Session = Depends(get_db)):
-    # Retrieve the sighting to update
-    sighting_to_update = db.query(SightingModel).filter(SightingModel.id == sighting_id).first()
-
-    # Check if the sighting exists
-    if not sighting_to_update:
-        raise HTTPException(status_code=404, detail="Sighting not found")
-
-    # Update fields
-    sighting_to_update.species = updated_sighting.species.title()
-    sighting_to_update.location = updated_sighting.location.title()
-    
-    # Validate and update date
     try:
+        sighting_to_update = db.query(SightingModel).filter(SightingModel.id == sighting_id).first()
+        if not sighting_to_update:
+            raise HTTPException(status_code=404, detail="Sighting not found")
+
+        sighting_to_update.species = updated_sighting.species.title()
+        sighting_to_update.location = updated_sighting.location.title()
+
         sighting_date = datetime.strptime(updated_sighting.date, '%Y-%m-%d').date()
         if sighting_date > date.today():
             raise HTTPException(status_code=400, detail='Date cannot be in the future.')
-        sighting_to_update.date = sighting_date  # Set the validated date
-    except ValueError:
-        raise HTTPException(status_code=400, detail='Invalid date format. Expected YYYY-MM-DD.')
+        sighting_to_update.date = sighting_date
 
-    # Validate and update time
-    try:
-        # Ensure time is formatted correctly
         datetime.strptime(updated_sighting.time, '%H:%M')
-        sighting_to_update.time = updated_sighting.time  # Only set if valid
-    except ValueError:
-        raise HTTPException(status_code=400, detail='Invalid time format. Expected HH:MM.')
+        sighting_to_update.time = updated_sighting.time
 
-    # Commit changes to the database
-    db.commit()
-    db.refresh(sighting_to_update)  # Refresh to get updated values
-    
-    # Return the updated sighting response
-    return SightingResponse(
-        id=sighting_to_update.id,
-        species=sighting_to_update.species,
-        location=sighting_to_update.location,
-        date=sighting_to_update.date,
-        time=sighting_to_update.time
-    )
+        db.commit()
+        db.refresh(sighting_to_update)
+
+        return SightingResponse(
+            id=sighting_to_update.id,
+            species=sighting_to_update.species,
+            location=sighting_to_update.location,
+            date=sighting_to_update.date,
+            time=sighting_to_update.time
+        )
+    except Exception as e:
+        print(f"Error updating sighting: {e}")  # Log the error for debugging
+        raise HTTPException(status_code=500, detail="Internal Server Error")
 
 @app.delete("/sightings/{sighting_id}")
 async def delete_sighting(sighting_id: int, db: Session = Depends(get_db)):

@@ -1,4 +1,4 @@
-# Wildlife Tracking API
+# Wildlife Tracking System
 
 ## Overview
 This FastAPI application enables users to track and manage wildlife sightings. Users can create, read, update, and delete records, ensuring data integrity with built-in validations. 

@@ -1,7 +1,7 @@
 # Wildlife Tracking API
 
 ## Overview
-This FastAPI application enables users to track and manage wildlife sightings. Users can create, read, update, and delete records, ensuring data integrity with built-in validations. The current version utilizes an in-memory dictionary for storage, with plans for future enhancements to integrate PostgreSQL and a Streamlit frontend.
+This FastAPI application enables users to track and manage wildlife sightings. Users can create, read, update, and delete records, ensuring data integrity with built-in validations. 
 
 ## Features
 - **Create Sightings**: Add new wildlife sightings with species, location, date, and time.
@@ -43,10 +43,18 @@ This FastAPI application enables users to track and manage wildlife sightings. U
 ### 5. Delete a Sighting
 - **DELETE** `/sightings/{sighting_id}`
 
-## Future Enhancements
-- **v1**: Wildlife tracking using FastAPI and a dictionary for data storage.
-- **v2**: Wildlife tracking using FastAPI and PostgreSQL for data storage.
-- **v3**: Wildlife tracking using FastAPI for the backend, PostgreSQL for the database, and Streamlit for the frontend.
+## Versions
+### [v1](https://github.com/codwithabid/Wildlife-Tracking-System/tree/main/version-1)
+- **Description**: Initial version of the wildlife tracking API using FastAPI with an in-memory dictionary for data storage.
+- **Features**: Basic CRUD operations for wildlife sightings, including input validation.
+
+### [v2](https://github.com/codwithabid/Wildlife-Tracking-System/tree/main/version-2)
+- **Description**: Enhanced version using FastAPI with PostgreSQL for data storage.
+- **Features**: All features from v1, plus improved data persistence and reliability.
+
+### [v3](https://github.com/codwithabid/Wildlife-Tracking-System/tree/main/version-3)
+- **Description**: Final version integrating FastAPI for the backend, PostgreSQL for the database, and Streamlit for a user-friendly frontend.
+- **Features**: Comprehensive wildlife tracking solution with a seamless user experience.
 
 ## Installation
 To run the application locally:
@@ -73,4 +81,4 @@ To run the application locally:
   Once the application is running, visit http://localhost:8000/docs for interactive API documentation using Swagger UI.
 
 ## License
-  This project is licensed under the RIVON License. See the LICENSE file for details.
+  This project is licensed under the [RIVON.AI](https://github.com/rivon-ai) License. See the LICENSE file for details.
